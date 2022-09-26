@@ -58,8 +58,11 @@ generateNewRun = html.Div(
                 dcc.Upload(
                     id="upload-file-to-process",
                     className='dashed-file-upload file-upload',
-                    children=html.Div(
-                        ['Drag and Drop or ',html.A('Select Files')]
+                    children=html.Div([
+                        'Drag and Drop or ',
+                        html.A('Select Files'),
+                    ],
+                    id='uploadedContent'
                     )
                 )
             ],
@@ -194,6 +197,15 @@ generateNewRun = html.Div(
     ]
 )
 
+@app.callback(Output('uploadedContent','children'),
+                [Input('upload-file-to-process', 'contents')],
+                [State('upload-file-to-process', 'filename')])
+def update_filename(contents, fname):
+    if contents == None:
+        raise PreventUpdate
+    else:
+        return fname
+
 layout = html.Div(
     children=[
         headerComponent_configuration,
@@ -226,7 +238,7 @@ layout = html.Div(
 def update_output(clicks,uploaded_filenames, uploaded_file_contents,identity,coverage,maxterms,freqterm,keep,remove):
     """Save uploaded files and regenerate the file list."""
     if "," in keep or "," in remove:
-        return [html.P("You must separate keep and remove terms with newline not comma!!!")]
+        return [html.P("You must separate keep and remove terms with newline not comma.")]
     keep = keep.split("\n") #TERMS TO KEEP TO FILE 
     if len(keep) > 0:
         keep = [term.lower() for term in keep] # TERMS TO KEEP TO FILE 
@@ -236,9 +248,9 @@ def update_output(clicks,uploaded_filenames, uploaded_file_contents,identity,cov
     print(clicks,uploaded_filenames,identity,coverage,maxterms,freqterm)
     if clicks is not None: #Si cliqueo..
         if uploaded_filenames is None or uploaded_file_contents is None:
-            return [html.P("Try to upload the file again!!!")] #No se detecto un archivo
+            return [html.P("Try to upload the file again.")] #No se detecto un archivo
         else:
-            if ".fasta" in uploaded_filenames: #if the file has a fasta extension:
+            if ".fasta" or ".fa" in uploaded_filenames: #if the file has a fasta extension:
                 formatfile = "fasta"
                 content_type, content_string = uploaded_file_contents.split(',') # get content of the file
                 decoded = base64.b64decode(content_string) # decode it  to base64
@@ -249,7 +261,7 @@ def update_output(clicks,uploaded_filenames, uploaded_file_contents,identity,cov
                 decoded = base64.b64decode(content_string) # decode it  to base64
                 input_file = io.StringIO(decoded.decode('utf-8'))
             else:
-                return [html.P("Format is not .fasta or .txt!!!")]
+                return [html.P("Format is not .fasta or .txt.")]
             if maxterms is None:
                 maxterms = 5000
             if freqterm == "high":
@@ -266,7 +278,7 @@ def update_output(clicks,uploaded_filenames, uploaded_file_contents,identity,cov
             logging.basicConfig(format='%(asctime)s - IdMiner - %(levelname)s: %(message)s', datefmt='%m/%d/%Y %I:%M:%S %p',filename= Run_name + '.log',level=logging.DEBUG)
             articles = ids_by_gene(input_file,formatfile,coverage,identity)
             if not articles: #si no obtuvimos ningun articulo
-                return [html.P("There were not articles find for your genes. Try to lower de coverage and identity parameters to allow more remote hits")]
+                return [html.P("There were no articles find for your genes. Try to lower the coverage and identity parameters to allow more remote hits")]
             elapsed_time = time.time() - start_time
             logging.info("Fetch article -> Duration %i seconds" %(elapsed_time))
             start_time = time.time()
