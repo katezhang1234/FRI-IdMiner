@@ -380,12 +380,24 @@ uploadOrLoadSample = html.Div(
         dcc.Upload(
             id="upload-gene-data",
             className='dashed-file-upload',
-            children=html.Div(
-                ['Drag and Drop or ',html.A('Select Files')]
+            children=html.Div([
+                'Drag and Drop or ',
+                html.A('Select Files')
+                ],
+                id='uploadedGenes'
             )),
         html.Div(id='output-gene-data-upload')
     ]
 )
+
+@app.callback(Output('uploadedGenes','children'),
+                [Input('upload-gene-data', 'contents')],
+                [State('upload-gene-data', 'filename')])
+def update_filename(contents, fname):
+    if contents == None:
+        raise PreventUpdate
+    else:
+        return fname
 
 
 layout = html.Div(

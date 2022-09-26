@@ -63,8 +63,7 @@ generateNewRun = html.Div(
                         html.A('Select Files'),
                     ],
                     id='uploadedContent'
-                    )
-                )
+                ))
             ],
             title="FASTA or TXT extension!"
         ),

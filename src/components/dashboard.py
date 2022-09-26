@@ -378,12 +378,25 @@ uploadOrLoadSample = html.Div(
             id="upload-data",
             className='dashed-file-upload',
             multiple=True,
-            children=html.Div(
-                ['Drag and Drop or ',html.A('Select Files')]
+            children=html.Div([
+                'Drag and Drop or ',
+                html.A('Select Files')
+            ],
+            id='uploadedTerms'
             )),
         html.Div(id='output-data-upload')
     ]
 )
+
+@app.callback(Output('uploadedTerms','children'),
+                [Input('upload-data', 'contents')],
+                [State('upload-data', 'filename')])
+def update_filename(contents, fname):
+    if contents == None:
+        raise PreventUpdate
+    else:
+        return fname
+
 
 layout = html.Div(
     children=[
@@ -394,8 +407,8 @@ layout = html.Div(
             html.H4('EXPLORING TERMS',className='configuration-subsection'),
             uploadOrLoadSample,
             html.Div(id='output-data-upload')
-        ]
-    )
+        ],
+        )
     ]
 )
 
