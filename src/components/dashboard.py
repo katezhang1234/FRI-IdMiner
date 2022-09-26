@@ -5,12 +5,12 @@ import datetime
 import io
 import math
 import dash
-import dash_table
+from dash import dash_table
 from dash.dependencies import Input, Output, State
-import dash_core_components as dcc
-import dash_html_components as html
+from dash import dcc
+from dash import html
 from pathlib import Path
-import plotly.plotly as py
+import chart_studio.plotly as py
 import plotly.graph_objs as go
 from plotly.offline import download_plotlyjs, init_notebook_mode, plot, iplot
 import networkx as nx
