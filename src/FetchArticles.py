@@ -227,7 +227,7 @@ def ids_by_gene(input_file,format_file,pcov=30,pident=30):
     """ Create a table (tsv format) of genes and their associated articles
     
     Arguments:
-        input_file {[file]} -- Input file in either fasat or text format
+        input_file {[file]} -- Input file in either fasta or text format
         format_file {[string]} -- Format of input file, either fasta or text.
     
     Keyword Arguments:
@@ -235,12 +235,14 @@ def ids_by_gene(input_file,format_file,pcov=30,pident=30):
         pident {int} -- Minimum percentage of identity for a homologous to be accepted. (default: {30})
     
     Raises:
-        ValueError -- Rise an error if there was not results.
+        ValueError -- Raise an error if there was not results.
     """
     articles = []
     genes = check_format(input_file,format_file) #Check format and return genes name (and if fasta sequence)
     for gene in genes:
-        if format_file == "fasta":
+        if format_file == "txt":
+            xml_list = get_text_from_text(gene) # get blastpaper result
+        elif format_file == "fasta":
             xml_list = get_text_from_fasta(gene,genes[gene]) # get blastpaper result
         else:
             xml_list = get_text_from_text(gene) # get blastpaper result
@@ -251,7 +253,7 @@ def ids_by_gene(input_file,format_file,pcov=30,pident=30):
             pmids = get_list(hits,gene)
             tmpart = [gene] + [pmids]
             articles += [tmpart]
-    if articles == []: #If ther was not results. Error
+    if articles == []: #If there was not results. Error
         logging.error("There was non results on your search")
         raise ValueError("There was non results on your search")
     return articles

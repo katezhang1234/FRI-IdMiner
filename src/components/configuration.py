@@ -60,7 +60,7 @@ generateNewRun = html.Div(
                     className='dashed-file-upload file-upload',
                     children=html.Div([
                         'Drag and Drop or ',
-                        html.A('Select Files'),
+                        html.A('Select Files')
                     ],
                     id='uploadedContent'
                 ))
@@ -249,16 +249,16 @@ def update_output(clicks,uploaded_filenames, uploaded_file_contents,identity,cov
         if uploaded_filenames is None or uploaded_file_contents is None:
             return [html.P("Try to upload the file again.")] #No se detecto un archivo
         else:
-            if ".fasta" or ".fa" in uploaded_filenames: #if the file has a fasta extension:
-                formatfile = "fasta"
-                content_type, content_string = uploaded_file_contents.split(',') # get content of the file
-                decoded = base64.b64decode(content_string) # decode it  to base64
-                input_file = io.StringIO(decoded.decode('utf-8')) # content of the file to strings
-            elif ".txt" in uploaded_filenames:
+            if ".txt" in uploaded_filenames:
                 formatfile = "text"
                 content_type, content_string = uploaded_file_contents.split(',') # get content of the file
                 decoded = base64.b64decode(content_string) # decode it  to base64
                 input_file = io.StringIO(decoded.decode('utf-8'))
+            elif ".fasta" or ".fa" in uploaded_filenames: #if the file has a fasta extension:
+                formatfile = "fasta"
+                content_type, content_string = uploaded_file_contents.split(',') # get content of the file
+                decoded = base64.b64decode(content_string) # decode it  to base64
+                input_file = io.StringIO(decoded.decode('utf-8')) # content of the file to strings
             else:
                 return [html.P("Format is not .fasta or .txt.")]
             if maxterms is None:

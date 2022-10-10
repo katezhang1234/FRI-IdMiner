@@ -407,8 +407,7 @@ layout = html.Div(
             html.H4('EXPLORING TERMS',className='configuration-subsection'),
             uploadOrLoadSample,
             html.Div(id='output-data-upload')
-        ],
-        )
+        ])
     ]
 )
 
