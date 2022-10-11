@@ -106,31 +106,31 @@ def get_info_hit(xml_list,pcov=30,pident=30):
         [dict] -- Dictionary of accepted homologs. The values ​​of the dictionary are: Database from where the hit {string} was obtained, identifier of the hit {string}, p-value of the search of BLAST {float}, bitscore of the search of BLAST {integer},% of coverage of the query protein and its respective hit {integer},% identity of the query protein and its respective hit {integer} and publications associated with the homologue {list}
     """
 
-    regex = "title=.*?(.+?)</a>" #Expresion regular para obtener los ids.
-    hit = {} # Diccionario de hits.
-    count = 0 # Inicio contador 
+    regex = "title=.*?(.+?)</a>" # Regular expression for obtaining ids
+    hit = {} # Dictionary of hits
+    count = 0 # Initialize count
     for x in xml_list:
-        results = re.findall(regex,x) # Obtengo todos los sitios donde aparece la expresión regex
+        results = re.findall(regex,x) # Obtain all sites where the regex expression appears
         for n,y in enumerate(results):
             if n == 0:
-                db = y.split(">")[0].split(" ")[0].replace('"',"") # Obtiene la base de datos.
-                gene = y.split(">")[1].split(" ")[-1] # Obtiene el nombre del hit.
+                db = y.split(">")[0].split(" ")[0].replace('"',"") # Obtain database
+                gene = y.split(">")[1].split(" ")[-1] # Obtain names of hits
             else:
-                if "% identity, " in y: # Contiene la informacion del alineamiento.
+                if "% identity, " in y: # Contains alignment information
                     values = y
                     evalue,score = values[values.find("(")+1:values.find(")")].replace("E =","").replace(" bits","").split(",") 
-                    score = score.lstrip() #Obtengo valores de evalue y bitscore
+                    score = score.lstrip() # Obtain values of evalue and bitscore
                     identity,coverage = values.split(">")[-1].split(",")
                     identity = identity.split("%")[0].strip()
-                    coverage = coverage.split("%")[0].strip() #obtengo valores de cobertura e identidad.
+                    coverage = coverage.split("%")[0].strip() # obtain values of coverage and identity
                     continue
         if pcov <= int(coverage) and pident <= int(identity):
-            soup = BS(x,"lxml") # Transformo el XML en un objeto de la clase bs4.BeautifulSoup para poder parsearlo.
-            primarylist = [] #Creo una lista vacia para poner los identificadores
-            for a in soup.findAll('a',href=True): # Me quedo con todos los tags href.  
-                if re.findall('pmc|pubmed', a['href']): # Dentro de ellos me quedo con los que mencionen pmc or pubmed. 
-                    primarylist.append(a['href']) #Agrego a la lista.
-            if primarylist != []: # Si la lista no esta vacia actualizo el contador y agrego un hit al diccionario.
+            soup = BS(x,"lxml") # Transform the XML file into an object of the class BeautifulSoup for parsing
+            primarylist = [] # Create an empty list for identifications
+            for a in soup.findAll('a',href=True): # Keep all href tags
+                if re.findall('pmc|pubmed', a['href']): # Inside tags, keep those mentioning pmc or pubmed
+                    primarylist.append(a['href']) # Add to the list
+            if primarylist != []: # If the list is not empty, increment the count and add a hit to the dictionary 
                 count += 1
                 key = "Hit_" + str(count)
                 hit[key] = db,gene,evalue,score,identity,coverage,primarylist
