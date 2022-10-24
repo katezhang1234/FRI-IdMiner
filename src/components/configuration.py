@@ -8,6 +8,7 @@ import dash
 from dash import html
 from dash import dcc
 from dash.dependencies import Input, Output, State
+from dash.exceptions import PreventUpdate
 
 from src.components.header import headerComponent_configuration
 from src.FetchArticles import *
