@@ -21,6 +21,7 @@ def check_df_ids_by_gene(articles):
     Returns:
         [dataframe] -- Panda dataframe (tsv format). Two columns [genes, pubmed ids]
     """
+    print("****** check_df_ids_by_gene ******")
 
     # try:
     #     df = pd.read_csv(input_file,sep="\t",header=0)
@@ -50,6 +51,7 @@ def gene_articles_dict(articles):
     Returns:
         [dict] -- Dictionary of {genes id: pubmed ids}
     """
+    print("****** gene_articles_dict ******")
 
     df = check_df_ids_by_gene(articles)
     genepmids = {}
@@ -71,6 +73,7 @@ def fetch_abstarcts(gene,pubmed,abstractdict):
     Returns:
         [dict] -- Dictionary of articles, where the key is the pubmed id and the value is the abstract
     """
+    print("****** fetch_abstarcts ******")
     Entrez.email = generate_random_emails()
     logging.info("Fetching abstracts for: %s" % (gene))
     nabstracts = 0
@@ -104,7 +107,7 @@ def generate_abstracts_dict(gene_pubmed):
     Returns:
         [dict] -- Dictionary of articles, where the key is the pubmed id and the value is the abstract 
     """
-
+    print("****** generate_abstracts_dict ******")
     abstractdict = {}
     for gene,pubmed in gene_pubmed.items():
         abstractdict = fetch_abstarcts(gene,pubmed,abstractdict)

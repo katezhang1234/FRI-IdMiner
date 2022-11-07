@@ -3,7 +3,8 @@ from dash import dcc
 
 
 
-def get_menu():
+def get_menu(): 
+    print("****** get_menu ******")
     menu = html.Div(children=[
 
         dcc.Link('Term Exploration    ', href='/dashboard', className="tab first"),
@@ -14,6 +15,7 @@ def get_menu():
     return menu
 
 def get_menu_term():
+    print("****** get_menu_term ******")
     menu = html.Div(children=[
 
         dcc.Link('Configuration    ', href='/', className="tab first"),
@@ -25,6 +27,7 @@ def get_menu_term():
 
 
 def get_menu_gene():
+    print("****** get_menu_gene ******")
     menu = html.Div(children=[
 
         dcc.Link('Configuration    ', href='/', className="tab first"),

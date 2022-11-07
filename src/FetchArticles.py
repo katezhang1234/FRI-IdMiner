@@ -10,31 +10,39 @@ import string
 import pandas as pd
 import logging
 
-# The on_exception decorator is used to retry when a specified exception is raised. Using exponential backoff retries when any kind of requests exception is raised. 
-# The keyword argument max_time specifies the maximum amount of total time in seconds that can elapse before giving up.
+# The on_exception decorator is used to retry when a specified exception is 
+# raised. Using exponential backoff retries when any kind of requests exception
+# is raised. 
+# The keyword argument max_time specifies the maximum amount of total time in 
+# seconds that can elapse before giving up.
 
 
 def get_genes_ids_from_text(file_input):
     """From txt file obtain gene ids
-    
+
     Arguments:
         file_input {[file]} -- .txt file with genes separeted by new line
     
     Returns:
         [list] -- List of genes identificators
     """
+    print("****** Inside get_genes_ids_from_text ********")
     return [gene.strip() for gene in file_input.read().split("\n") if len(gene.strip()) >= 1]
 
 @backoff.on_exception(backoff.expo,requests.exceptions.RequestException,max_time=120)
 def get_text_from_text(gene):
-    '''This function obtains a list of articles associated with the query gene. Use the PaperBLAST API in order to obtain for the query gene (and their homologues) the list of articles where they are mentioned.
+    '''This function obtains a list of articles associated with the query gene. 
+    Use the PaperBLAST API in order to obtain for the query gene (and their 
+    homologues) the list of articles where they are mentioned.
     
     Arguments:
-        gene {[string]} -- id of a gene. It can  be from UniProt, RefSeq, or MicrobesOnline
+        gene {[string]} -- id of a gene. It can  be from UniProt, RefSeq, or 
+        MicrobesOnline
     
     Returns:
         [list] -- List of XML results. Each element is an homologue result.
     '''
+    print("***** get_text_from_text *****")
 
     try:
         logging.info("Searching %s in PaperBLAST!" % (gene))
@@ -55,11 +63,14 @@ def create_fasta_db(fastafile):
     """Convert a fasta file into a dictionary.
     
     Arguments:
-        fastafile {[string]} -- Multifasta file of query protein. Must be in fasta format.
+        fastafile {[string]} -- Multifasta file of query protein. Must be in 
+        fasta format.
     
     Returns:
         [dict] -- Dictionary with ID as a key and sequence as a value.
     """
+    print("******* create_fasta_db *******")
+
     fastadict = {}
     record_dict = SeqIO.to_dict(SeqIO.parse(fastafile, "fasta"))
     for key in record_dict:
@@ -68,7 +79,9 @@ def create_fasta_db(fastafile):
 
 @backoff.on_exception(backoff.expo,requests.exceptions.RequestException,max_time=120)
 def get_text_from_fasta(gene,seq):
-    """This function obtains a list of articles associated with the query sequence. Use the PaperBLAST API in order to obtain for the query sequence (and their homologues) the list of articles where they are mentioned.
+    """This function obtains a list of articles associated with the query sequence. 
+    Use the PaperBLAST API in order to obtain for the query sequence (and their 
+    homologues) the list of articles where they are mentioned.
     
     Arguments:
         gene {[string]} -- id of a gene.
@@ -77,6 +90,8 @@ def get_text_from_fasta(gene,seq):
     Returns:
         [list] -- List of XML results. Each element is an homologue result.
     """
+    print("****** get_text_from_fasta ******")
+
     try:
         logging.info("Searching %s in paperblast!" % (gene))
         url = 'http://papers.genomics.lbl.gov/cgi-bin/litSearch.cgi?query=' + seq
@@ -96,15 +111,25 @@ def get_info_hit(xml_list,pcov=30,pident=30):
     """Parse the xml of the search made in Paper Blast to get a summary of it.
     
     Arguments:
-        xml_list {[list]} -- List of XML results. Each element is an homologue result.
+        xml_list {[list]} -- List of XML results. Each element is an homologue 
+        result.
     
     Keyword Arguments:
-        pcov {int} --  Minimum percentage of coverage for a homologous to be accepted.  (default: {30})
-        pident {int} -- Minimum percentage of identity for a homologous to be accepted. (default: {30})
+        pcov {int} --  Minimum percentage of coverage for a homologous to be 
+                       accepted.  (default: {30})
+        pident {int} -- Minimum percentage of identity for a homologous to be 
+                        accepted. (default: {30})
     
     Returns:
-        [dict] -- Dictionary of accepted homologs. The values ​​of the dictionary are: Database from where the hit {string} was obtained, identifier of the hit {string}, p-value of the search of BLAST {float}, bitscore of the search of BLAST {integer},% of coverage of the query protein and its respective hit {integer},% identity of the query protein and its respective hit {integer} and publications associated with the homologue {list}
+        [dict] -- Dictionary of accepted homologs. The values ​of the dictionary are: 
+                  Database from where the hit {string} was obtained, identifier 
+                  of the hit {string}, p-value of the search of BLAST {float}, 
+                  bitscore of the search of BLAST {integer},% of coverage of 
+                  the query protein and its respective hit {integer},% identity 
+                  of the query protein and its respective hit {integer} and 
+                  publications associated with the homologue {list}
     """
+    print("****** get_info_hit ******")
 
     regex = "title=.*?(.+?)</a>" # Regular expression for obtaining ids
     hit = {} # Dictionary of hits
@@ -145,7 +170,7 @@ def generate_random_emails():
     Returns:
         [string] -- Random email.
     """
-
+    print("****** generate_random_emails ******")
     return ''.join(random.choice(string.ascii_lowercase[:12]) for i in range(7)) + '@' + random.choice([ "hotmail.com", "gmail.com", "aol.com", "mail.com" , "mail.kz", "yahoo.com"])
 
 @backoff.on_exception(backoff.expo,requests.exceptions.RequestException,max_time=120)
@@ -158,6 +183,7 @@ def convert_pmc(pmc):
     Returns:
         [list] -- List of Pubmed ids
     """
+    print("****** convert_pmc ******")
 
     pubmedlist = []
     url = "https://www.ncbi.nlm.nih.gov/pmc/utils/idconv/v1.0/?tool=genomepaper&" + "email="+generate_random_emails()+"&ids=" + pmc
@@ -182,6 +208,7 @@ def get_list(hits,gene):
     Returns:
         [string] -- comma separeted pubmedid articles
     """
+    print("****** get_list ******")
 
     primarylist = []
     for hit in hits:
@@ -211,6 +238,7 @@ def check_format(input_file,format_file):
     Returns:
         [list]/[dict] -- List of genes (text format) or dictionary of sequence (fasta format)
     """
+    print("****** check_format ******")
     
     if format_file == "fasta":
         genes = create_fasta_db(input_file)
@@ -237,6 +265,8 @@ def ids_by_gene(input_file,format_file,pcov=30,pident=30):
     Raises:
         ValueError -- Raise an error if there was not results.
     """
+    print("****** ids_by_gene ******")
+    
     articles = []
     genes = check_format(input_file,format_file) #Check format and return genes name (and if fasta sequence)
     for gene in genes:
@@ -254,6 +284,7 @@ def ids_by_gene(input_file,format_file,pcov=30,pident=30):
             tmpart = [gene] + [pmids]
             articles += [tmpart]
     if articles == []: #If there was not results. Error
+        print("Contents of articles array: ", articles);
         logging.error("There was non results on your search")
         raise ValueError("There was non results on your search")
     return articles

@@ -32,9 +32,11 @@ if not os.path.exists(UPLOAD_DIRECTORY):
 @server.route("/download/<path:path>")
 def download(path):
     """Serve a file from the upload directory."""
+    print("****** download(path) ******")
     return send_from_directory(UPLOAD_DIRECTORY, path, as_attachment=True)
 
 def parse_contents(file_name,file_content):
+    print("****** parse_contents ******")
     content_type, content_string = contents.split(',')
     decoded = base64.b64decode(content_string)
     try:
@@ -49,7 +51,7 @@ def parse_contents(file_name,file_content):
     except Exception as e:
         print(e,file_name,"Uploaded file has not correct format. Extension must be .txt or .fasta!!! \n")
 
-
+print("****** Before generateNewRun: html layout ******")
 generateNewRun = html.Div(
     children=[
         html.H4('SET UP YOUR RUN', className='configuration-subsection'),
@@ -237,6 +239,7 @@ layout = html.Div(
 )
 def update_output(clicks,uploaded_filenames, uploaded_file_contents,identity,coverage,maxterms,freqterm,keep,remove):
     """Save uploaded files and regenerate the file list."""
+    print("****** update_output ******")
     if "," in keep or "," in remove:
         return [html.P("You must separate keep and remove terms with newline not comma.")]
     keep = keep.split("\n") #TERMS TO KEEP TO FILE 

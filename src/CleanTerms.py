@@ -25,7 +25,7 @@ def get_words(abstractdict):
     Returns:
         [type] -- Dictionary of articles, where the key is the pubmed id and the value is a list of tokens.  
     """
-
+    print("****** get_words ******")
     worddict = {} #empty dict
     removepunct = string.punctuation.replace("-","").replace("_","") #keep - and _ in text other punctuation removed
     table = str.maketrans('', '', removepunct) # create table to make the replacements
@@ -42,6 +42,7 @@ def cleanwords(abstractdict,keep,remove,zipf):
     Returns:
         [dict] --Dictionary of articles, where the key is the pubmed id and the value is a list of cleaned (remove common words, stemm, lemma, etc.) tokens 
     """
+    print("****** cleanwords ******")
     stopgrams = generate_stop_grams()
     stopgrams += remove
     keepgrams = get_keepterms()
@@ -73,6 +74,7 @@ def dict_gram(worddict,mostcommon=1000,minfreq=2):
     Returns:
         [dict] -- Dictionary of terms (key). Values are [freq,# articles, pubmed ids]
     """
+    print("****** dict_gram ******")
     gramdict = defaultdict(dict) #create empty dictionary
     bag_of_words = list(itertools.chain.from_iterable(worddict.values())) #create a list of all words from all articles and it associated frequency.
     freq = FreqDist(bag_of_words)
