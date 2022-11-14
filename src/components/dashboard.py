@@ -8,6 +8,7 @@ import math
 import dash
 from dash import dash_table
 from dash.dependencies import Input, Output, State
+from dash.exceptions import PreventUpdate
 from dash import dcc
 from dash import html
 from pathlib import Path

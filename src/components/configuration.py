@@ -255,6 +255,7 @@ def update_output(clicks,uploaded_filenames, uploaded_file_contents,identity,cov
         else:
             if ".txt" in uploaded_filenames:
                 formatfile = "text"
+                #  TODO: CHANGE DELIMITER TYPE TO SPACE?
                 content_type, content_string = uploaded_file_contents.split(',') # get content of the file
                 decoded = base64.b64decode(content_string) # decode it  to base64
                 input_file = io.StringIO(decoded.decode('utf-8'))

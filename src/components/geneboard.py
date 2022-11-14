@@ -12,6 +12,7 @@ import plotly.graph_objs as go
 import dash
 from dash import dash_table
 from dash.dependencies import Input, Output, State
+from dash.exceptions import PreventUpdate
 from dash import dcc
 from dash import html
 
@@ -38,6 +39,7 @@ def get_genes_relations(dfgenes):
                                 values are the number of items the genes have
                                 in common]
     """
+    print("****** get_genes_relations ******")
 
     genes = dfgenes.columns[0:-1]
     article_by_gene = {}
@@ -74,9 +76,11 @@ def generate_dataframe(article_by_gene,gene_common_count):
         [dataframe] -- data frame showing the number of articles in common
                        between 2 genes
     """
+    print("****** generate_dataframe ******")
 
     genes = list(article_by_gene.keys()) #Define gene names as the columns
-    rows = []
+    # rows = []
+    records = []
     start_query_value = 0
     start_query_max = 0
     start_query = ""
@@ -84,7 +88,7 @@ def generate_dataframe(article_by_gene,gene_common_count):
         row = []
         for second_gene in genes:
             if first_gene == second_gene:
-                own_articles =len(article_by_gene[first_gene])
+                own_articles = len(article_by_gene[first_gene])
                 row.append(own_articles)
             else:
                 if second_gene in gene_common_count[first_gene].keys():
@@ -97,10 +101,12 @@ def generate_dataframe(article_by_gene,gene_common_count):
             start_query = first_gene
         row.insert(0,len(gene_common_count[first_gene]))
         row.insert(0, first_gene)            
-        rows.append(row)
+        # rows.append(row)
+        records.append(row)
     genes.insert(0,"In-common")    
     genes.insert(0,"Gene")
-    df = pd.DataFrame(rows, columns=genes)
+    # df = pd.DataFrame(rows, columns=genes)
+    df = pd.DataFrame(records, columns = genes)
     return df,start_query
 
 
@@ -122,6 +128,7 @@ def get_gene_edges(query_gene,gene_common_count):
                                             (node 2) and number of items in
                                             common (weight of interaction)]
     """
+    print("****** get_gene_edges ******")
 
     gene_dict = gene_common_count[query_gene] #Obtain dictionary for gene of interest
     edge_list = [] # Empty list of future vertices (term, gene, number of articles
@@ -142,6 +149,8 @@ def create_gene_node_trace(network,query_gene,edge_list,gene_common_count):
     Returns:
         [go] -- Returns a plotly scatter plot object. 
     """
+    print("****** create_gene_node_trace ******")
+
     pos = nx.fruchterman_reingold_layout(network) # Defines a layout type of reingold
     node_trace = go.Scatter(
         x=[], # x-axis position of the node
@@ -207,6 +216,7 @@ def create_gene_name_trace(network,query_gene,node_trace,gene_common):
                                 names of the nodes and articles associated with
                                 each node (gene)]
     """
+    print("****** create_gene_name_trace ******")
 
     # Determines the names of nodes. The name of the node is composed of the name 
     # of the subject gene and contains a link to the articles it has in common 
@@ -241,6 +251,7 @@ def gene_network_layout(query_gene,gene_common,articles_by_gene):
     Returns:
         [type] -- [description]
     """
+    print("****** gene_network_layout ******")
 
     # All items related to the query, in a single string. Remove duplicates 
     # from the set. With itertools chains from iterable, list of lists is 
@@ -304,6 +315,7 @@ def create_gene_network(query_gene,article_by_gene,gene_common,gene_common_count
     Returns:
         [dict] -- fig: es un diccionario que contiene la figura del grafo, que es ploteado por dassh-plotly
     """
+    print("****** create_gene_network ******")
 
     edge_list = get_gene_edges(query_gene,gene_common_count) # Creo la estructura de EDGES.
     if len(edge_list) == 0: #Cuando no hay resultados en una union o interseccion.
@@ -322,6 +334,7 @@ def create_gene_network(query_gene,article_by_gene,gene_common,gene_common_count
 
 
 def get_genes_df(contents, filename, date):
+    print("****** get_genes_df ******")
     content_type, content_string = contents.split(',')
     decoded = base64.b64decode(content_string)
     global df_genes_relation
@@ -331,9 +344,11 @@ def get_genes_df(contents, filename, date):
     global gene_common_count
     global dfgenes
     try:
-         #La seteo global porque como es una varaible que voy a necesitar no hay problemas.
+         # Global setting as it is a variable I will need, there are no 
+         # problems. 
         if 'csv' in filename:
             # Assume that the user uploaded a CSV file
+            print("****** Reading csv file ******")
             dfgenes = pd.read_csv(
                 io.StringIO(decoded.decode('utf-8')))
         elif 'xls' in filename:
@@ -348,24 +363,23 @@ def get_genes_df(contents, filename, date):
 
 
 def parse_contents(df_genes_realtion):
+    print("****** parse_contents ******")
     try:
         col = df_genes_realtion.columns
-        return html.Div(children=[
+        children_contents = html.Div(children=[
             html.Hr(),
             dash_table.DataTable(
                 id='gene_table-sorting-filtering',
                 columns=[{"name": i, "id": i, 'deletable': True}
                         for i in df_genes_realtion[col].columns],
-                pagination_settings={
-                    'current_page': 0,
-                    'page_size': 10
-                },
-                pagination_mode='be',
-                sorting='be',
-                sorting_type='multi',
-                sorting_settings=[],
-                filtering='be',
-                filtering_settings='',
+                page_size = 10,
+                page_current = 0,
+                page_action='be',
+                sort_action='be',
+                sort_mode='multi',
+                sort_by=[],
+                filter_action='be',
+                filter_query='',
                 style_table={'overflowX': 'scroll'},
                 style_header={
                     'backgroundColor': '#91B9E5',
@@ -405,6 +419,8 @@ def parse_contents(df_genes_realtion):
         dcc.Graph(id='gene_net_graph')
         ]
         )
+        app.layout = children_contents
+        return children_contents
     except Exception as e:
         print(e)
         return html.Div([
@@ -468,19 +484,40 @@ def update_output(file_content, file_name, file_date):
     if file_content is not None:
         if file_name.split("_")[-1] == "IDMiner-Genes.csv":
             get_genes_df(file_content, file_name, file_date)
-            children = [parse_contents(df_genes_relation)]
+            # children = [parse_contents(df_genes_relation)]
+            # type(children)
+            # print(type(children))
+            children = parse_contents(df_genes_relation)
+            app.layout = children
         else:
              return html.Div(['There was an error processing this file. You need to upload this file, (yourname_IDMiner-Genes.csv)'])
-        return children
+        # return children
+        return [children]
+
+layout = html.Div(
+    children=[
+        headerComponent_geneboard,
+        html.Div(
+            id="configuration-form-container",
+        children=[
+            html.H4('EXPLORING GENES',className='configuration-subsection'),
+            uploadOrLoadSample,
+            html.Div(id='output-gene-data-upload')
+        ]
+    )
+    ]
+)
+        
 
 
 @app.callback(
     Output('gene_table-sorting-filtering', 'data'),
-    [Input('gene_table-sorting-filtering', 'pagination_settings'),
-     Input('gene_table-sorting-filtering', 'sorting_settings'),
-     Input('gene_table-sorting-filtering', 'filtering_settings')])
-def update_graph(pagination_settings, sorting_settings, filtering_settings):
-    filtering_expressions = filtering_settings.split(' && ')
+    [Input('gene_table-sorting-filtering', 'page_current'),
+     Input('gene_table-sorting-filtering', 'page_size'),
+     Input('gene_table-sorting-filtering', 'sort_by'),
+     Input('gene_table-sorting-filtering', 'filter_action')])
+def update_graph(page_current, page_size, sort_by, filter_action):
+    filtering_expressions = filter_action.split(' && ')
     dff = df_genes_relation
     for filter in filtering_expressions:
         if ' eq ' in filter:
@@ -496,21 +533,19 @@ def update_graph(pagination_settings, sorting_settings, filtering_settings):
             filter_value = float(filter.split(' < ')[1])
             dff = dff.loc[dff[col_name] < filter_value]
 
-    if len(sorting_settings):
+    if len(sort_by):
         dff = dff.sort_values(
-            [col['column_id'] for col in sorting_settings],
+            [col['column_id'] for col in sort_by],
             ascending=[
                 col['direction'] == 'asc'
-                for col in sorting_settings
+                for col in sort_by
             ],
             inplace=False
         )
 
-    return dff.iloc[
-        pagination_settings['current_page']*pagination_settings['page_size']:
-        (pagination_settings['current_page'] + 1) *
-        pagination_settings['page_size']
-    ].to_dict('rows')
+    return dff.iloc[page_current * page_size:
+        (page_current + 1) * page_size
+    ].to_dict('records')
 
 
 @app.callback(Output('gene_net_graph', 'figure'), [Input('query-gene-dropdown', 'value')])
