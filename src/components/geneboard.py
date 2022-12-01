@@ -1,6 +1,7 @@
 # Gene Exploration. In common-gene 2 gene. 
 import base64
 import datetime
+import time
 import io
 import os 
 import pandas as pd 
@@ -79,7 +80,6 @@ def generate_dataframe(article_by_gene,gene_common_count):
     print("****** generate_dataframe ******")
 
     genes = list(article_by_gene.keys()) #Define gene names as the columns
-    # rows = []
     records = []
     start_query_value = 0
     start_query_max = 0
@@ -101,11 +101,9 @@ def generate_dataframe(article_by_gene,gene_common_count):
             start_query = first_gene
         row.insert(0,len(gene_common_count[first_gene]))
         row.insert(0, first_gene)            
-        # rows.append(row)
         records.append(row)
     genes.insert(0,"In-common")    
     genes.insert(0,"Gene")
-    # df = pd.DataFrame(rows, columns=genes)
     df = pd.DataFrame(records, columns = genes)
     return df,start_query
 
@@ -240,8 +238,8 @@ def create_gene_name_trace(network,query_gene,node_trace,gene_common):
     mode='text')
     return names_trace
 
-
-def gene_network_layout(query_gene,gene_common,articles_by_gene):
+def gene_network_layout(query_gene,gene_common):
+# def gene_network_layout(query_gene,gene_common,articles_by_gene):
     """Generate the layout of the graph.
     
     Arguments:
@@ -325,7 +323,8 @@ def create_gene_network(query_gene,article_by_gene,gene_common,gene_common_count
     network.add_weighted_edges_from(edge_list) # Creo lista de arcos. edges.
     node_trace = create_gene_node_trace(network,query_gene,edge_list,gene_common_count)
     name_trace = create_gene_name_trace(network,query_gene,node_trace,gene_common)
-    layout = gene_network_layout(query_gene,gene_common,article_by_gene)
+    # layout = gene_network_layout(query_gene,gene_common,article_by_gene)
+    layout = gene_network_layout(query_gene, gene_common)
     annot = "<a href='http://www.genomica.weebly.com'>IdMiner: Departamento de Genomica - IIBCE</a>"
     data = [node_trace, name_trace]
     fig = go.Figure(data=data, layout=layout)
@@ -362,23 +361,23 @@ def get_genes_df(contents, filename, date):
 
 
 
-def parse_contents(df_genes_realtion):
+def parse_contents(df_genes_relation):
     print("****** parse_contents ******")
     try:
-        col = df_genes_realtion.columns
-        children_contents = html.Div(children=[
+        col = df_genes_relation.columns
+        return html.Div(children = [
             html.Hr(),
             dash_table.DataTable(
                 id='gene_table-sorting-filtering',
                 columns=[{"name": i, "id": i, 'deletable': True}
-                        for i in df_genes_realtion[col].columns],
-                page_size = 10,
+                        for i in df_genes_relation[col].columns],
                 page_current = 0,
-                page_action='be',
-                sort_action='be',
+                page_size = 10,
+                page_action='custom',
+                sort_action='custom',
                 sort_mode='multi',
                 sort_by=[],
-                filter_action='be',
+                filter_action='custom',
                 filter_query='',
                 style_table={'overflowX': 'scroll'},
                 style_header={
@@ -411,16 +410,16 @@ def parse_contents(df_genes_realtion):
                             {'label': i.title(), 'value': i} for i in sorted(dfgenes.columns[:-1])
                         ],
                         multi=False,
+                        placeholder="dropdown menu please work",
+                        disabled=False,
                         value=start_gene_query #Start query value
                     )
                 ]
             ),
-        html.Hr(),
-        dcc.Graph(id='gene_net_graph')
+            html.Hr(),
+            dcc.Graph(id='gene_net_graph')
         ]
         )
-        app.layout = children_contents
-        return children_contents
     except Exception as e:
         print(e)
         return html.Div([
@@ -434,7 +433,7 @@ def parse_contents(df_genes_realtion):
 #MAIN
 
 
-
+print("****** uploadOrLoadSample ******")
 uploadOrLoadSample = html.Div(
     className='flex-container',
     children=[
@@ -451,6 +450,7 @@ uploadOrLoadSample = html.Div(
     ]
 )
 
+print("****** Callback to update filename ******")
 @app.callback(Output('uploadedGenes','children'),
                 [Input('upload-gene-data', 'contents')],
                 [State('upload-gene-data', 'filename')])
@@ -461,6 +461,7 @@ def update_filename(contents, fname):
         return fname
 
 
+print("****** output-gene-data-upload layout ******")
 layout = html.Div(
     children=[
         headerComponent_geneboard,
@@ -475,7 +476,7 @@ layout = html.Div(
     ]
 )
 
-
+print("****** Callback to update_output ******")
 @app.callback(Output('output-gene-data-upload', 'children'),
               [Input('upload-gene-data', 'contents')],
               [State('upload-gene-data', 'filename'),
@@ -484,40 +485,22 @@ def update_output(file_content, file_name, file_date):
     if file_content is not None:
         if file_name.split("_")[-1] == "IDMiner-Genes.csv":
             get_genes_df(file_content, file_name, file_date)
-            # children = [parse_contents(df_genes_relation)]
-            # type(children)
-            # print(type(children))
-            children = parse_contents(df_genes_relation)
-            app.layout = children
+            children = [parse_contents(df_genes_relation)]
         else:
              return html.Div(['There was an error processing this file. You need to upload this file, (yourname_IDMiner-Genes.csv)'])
-        # return children
-        return [children]
-
-layout = html.Div(
-    children=[
-        headerComponent_geneboard,
-        html.Div(
-            id="configuration-form-container",
-        children=[
-            html.H4('EXPLORING GENES',className='configuration-subsection'),
-            uploadOrLoadSample,
-            html.Div(id='output-gene-data-upload')
-        ]
-    )
-    ]
-)
+        print("****** children returned ******")
+        return children
         
 
-
+print("****** Callback to update_graph ******")
 @app.callback(
     Output('gene_table-sorting-filtering', 'data'),
     [Input('gene_table-sorting-filtering', 'page_current'),
      Input('gene_table-sorting-filtering', 'page_size'),
      Input('gene_table-sorting-filtering', 'sort_by'),
-     Input('gene_table-sorting-filtering', 'filter_action')])
-def update_graph(page_current, page_size, sort_by, filter_action):
-    filtering_expressions = filter_action.split(' && ')
+     Input('gene_table-sorting-filtering', 'filter_query')])
+def update_graph(page_current, page_size, sort_by, filter_query):
+    filtering_expressions = filter_query.split(' && ')
     dff = df_genes_relation
     for filter in filtering_expressions:
         if ' eq ' in filter:
@@ -548,11 +531,15 @@ def update_graph(page_current, page_size, sort_by, filter_action):
     ].to_dict('records')
 
 
-@app.callback(Output('gene_net_graph', 'figure'), [Input('query-gene-dropdown', 'value')])
+print("****** app callback to load_graph ******")
+@app.callback(
+    Output('gene_net_graph', 'figure'), 
+    [Input('gene-dropdown-container', 'children')])
 def load_graph(selected_dropdown_value):
-    if len(selected_dropdown_value) > 0: #Cuando no tengo seleccion no hago nada. Para evitar que se generen vacios.
-        graph = create_gene_network(selected_dropdown_value,article_by_gene,gene_common,gene_common_count)
-        if graph:
-            return graph
-        else:
-            return {} 
+    print("Dropdown type: ", type(selected_dropdown_value))
+    print("Dropdown value: ", selected_dropdown_value)
+    graph = create_gene_network(selected_dropdown_value,article_by_gene,gene_common,gene_common_count)
+    if graph:
+        return graph
+    else:
+        return {}

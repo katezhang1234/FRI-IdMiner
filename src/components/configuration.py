@@ -28,7 +28,7 @@ if not os.path.exists(UPLOAD_DIRECTORY):
 # Normally, Dash creates its own Flask server internally. By creating our own,
 # we can create a route for downloading files directly:
 
-
+print("****** server.route ******")
 @server.route("/download/<path:path>")
 def download(path):
     """Serve a file from the upload directory."""
@@ -42,8 +42,7 @@ def parse_contents(file_name,file_content):
     try:
         if '.txt' in file_name:
             # Assume that the user uploaded a CSV file
-            genefile = open(
-                io.StringIO(decoded.decode('utf-8'))).read()
+            genefile = open(io.StringIO(decoded.decode('utf-8'))).read()
         elif '.fasta' in file_name or '.fa' in file_name or '.faa' in file_name:
             # Assume that the user uploaded an excel file
             genefile = pd.read_excel(io.BytesIO(decoded))
@@ -199,7 +198,8 @@ generateNewRun = html.Div(
     ]
 )
 
-@app.callback(Output('uploadedContent','children'),
+print("****** call to update filename ******")
+@app.callback(Output('uploadedContent','children'), 
                 [Input('upload-file-to-process', 'contents')],
                 [State('upload-file-to-process', 'filename')])
 def update_filename(contents, fname):
@@ -208,6 +208,7 @@ def update_filename(contents, fname):
     else:
         return fname
 
+print("****** call to generateNewRun ******")
 layout = html.Div(
     children=[
         headerComponent_configuration,
@@ -231,11 +232,18 @@ layout = html.Div(
 
 
 
-
+print("****** Callback to update_output ******")
 @app.callback(
     Output("report-status", "children"),
     [Input('run-btn', 'n_clicks')],
-    [State("upload-file-to-process", "filename"),State("upload-file-to-process", "contents"),State("identity-slider", "value"),State("coverage-slider", "value"),State("max-term-dropdown","value"),State("my-term-dropdown","value"),State("list_keep_terms","value"),State("list_remove_terms","value")],
+    [State("upload-file-to-process", "filename"),
+     State("upload-file-to-process", "contents"),
+     State("identity-slider", "value"),
+     State("coverage-slider", "value"),
+     State("max-term-dropdown","value"),
+     State("my-term-dropdown","value"),
+     State("list_keep_terms","value"),
+     State("list_remove_terms","value")],
 )
 def update_output(clicks,uploaded_filenames, uploaded_file_contents,identity,coverage,maxterms,freqterm,keep,remove):
     """Save uploaded files and regenerate the file list."""
@@ -250,6 +258,7 @@ def update_output(clicks,uploaded_filenames, uploaded_file_contents,identity,cov
         remove = [term.lower() for term in remove]
     print(clicks,uploaded_filenames,identity,coverage,maxterms,freqterm)
     if clicks is not None: #Si cliqueo..
+        print("~~~~~~~~ uploaded_filenames: ", uploaded_filenames)
         if uploaded_filenames is None or uploaded_file_contents is None:
             return [html.P("Try to upload the file again.")] #No se detecto un archivo
         else:
